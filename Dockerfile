@@ -1,30 +1,19 @@
-FROM phusion/baseimage:0.9.19
+FROM alpine:latest
+MAINTAINER rcgcoder <www.github.com/rcgcoder>
 
-MAINTAINER David Coppit <david@coppit.org>
+VOLUME /noip-client
+WORKDIR /noip-client/config
+WORKDIR /noip-client/files
 
-ENV DEBIAN_FRONTEND noninteractive
-
-# Speed up APT
-RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup \
-  && echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache
-
-VOLUME ["/config"]
+ADD https://www.noip.com/client/linux/noip-duc-linux.tar.gz /noip-clientfiles/
 
 RUN set -x \
-  && apt-get update \
-  && apt-get --no-install-recommends install -y expect \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-ADD https://www.noip.com/client/linux/noip-duc-linux.tar.gz /files/
-
-RUN set -x \
-  && chmod a+rwX /files \
-  && tar -C /files -x -f /files/noip-duc-linux.tar.gz noip-2.1.9-1/binaries/noip2-x86_64 \
-  && mv /files/noip-2.1.9-1/binaries/noip2-x86_64 /files \
+  && chmod a+rwX /noip-client/files \
+  && tar -C /noip-client/files -x -f /noip-client/files/noip-duc-linux.tar.gz noip-2.1.9-1/binaries/noip2-x86_64 \
+  && mv /noip-client/files/noip-2.1.9-1/binaries/noip2-x86_64 /noip-client/files \
   && rm -rf /files/noip-2.1.9-1 /files/noip-duc-linux.tar.gz
 
-COPY ["noip.conf", "create_config.exp", "noip.sh", "/files/"]
-RUN chmod +x /files/noip.sh
+COPY ["noip.conf", "create_config.exp", "noip.sh", "/noip-client/files/config"]
+RUN chmod +x /noip-client/files/config/noip.sh
 
-CMD /files/noip.sh
+CMD /noip-client/files/config/noip.sh

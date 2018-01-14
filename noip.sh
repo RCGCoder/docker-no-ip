@@ -1,12 +1,12 @@
 #!/bin/bash
 
-SOURCE_CONF=/config/noip.conf
-GENERATED_CONF=/config/no-ip2.generated.conf
+SOURCE_CONF=/noip-client/config/noip.conf
+GENERATED_CONF=/noip-client/config/no-ip2.generated.conf
 
 # Search for custom config file, if it doesn't exist, copy the default one
 if [ ! -f "$SOURCE_CONF" ]; then
   echo "Creating config file. Please do not forget to enter your info in noip.conf."
-  cp /files/noip.conf "$SOURCE_CONF"
+  cp /noip-client/files/noip.conf "$SOURCE_CONF"
   chmod a+w "$SOURCE_CONF"
   exit 1
 fi
@@ -71,7 +71,7 @@ fi
 # Create the binary configuration file used by noip2.
 # This comparison also works if $GENERATED_CONF is missing
 if [[ "$SOURCE_CONF" -nt "$GENERATED_CONF" ]]; then
-  expect /files/create_config.exp "$USERNAME" "$PASSWORD" "$DOMAINS" "$INTERVAL"
+  expect /noip-client/files/create_config.exp "$USERNAME" "$PASSWORD" "$DOMAINS" "$INTERVAL"
 
   if [[ $? != 0 ]]; then
     echo ""
@@ -85,14 +85,14 @@ fi
 while true
 do
   echo "$(ts) Launching the noip2 daemon"
-  /files/noip2-x86_64 -c "$GENERATED_CONF"
+  /noip-client/files/noip2-x86_64 -c "$GENERATED_CONF"
 
   # Give it a few seconds to do the first update. This helps avoid questions about "Last IP Address set 0.0.0.0"
   sleep 5
 
   while true
   do
-    output=$(/files/noip2-x86_64 -c "$GENERATED_CONF" -S 2>&1)
+    output=$(/noip-client/files/noip2-x86_64 -c "$GENERATED_CONF" -S 2>&1)
 
     echo "$(ts) Current status"
     echo "$output"
